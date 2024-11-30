@@ -28,7 +28,11 @@ public class Main {
                 System.out.println("10. Read notice by ID");
                 System.out.println("11. Update notice");
                 System.out.println("12. Delete notice");
-                System.out.println("13. Exit");
+                System.out.println("13. Create activity");
+                System.out.println("14. Read activity by ID");
+                System.out.println("15. Update activity");
+                System.out.println("16. Delete activity");
+                System.out.println("17. Exit");
                 System.out.print("Select an option: ");
                 int choice = scanner.nextInt();
                 scanner.nextLine(); // Consume newline character
@@ -122,14 +126,56 @@ public class Main {
                         Notice.updateNotice(conn, noticeId, title, content);
                         break;
                     case 12:
-                        System.out.println("Enter notice ID to delete:");
+                        System.out.print("Enter notice ID to delete: ");
                         noticeId = scanner.nextInt();
                         Notice.deleteNotice(conn, noticeId);
                         break;
                     case 13:
-                        System.out.println("Exiting...");
+                        System.out.print("Enter activity title: ");
+                        String title_act = scanner.nextLine();
+                        System.out.print("Enter activity description: ");
+                        String description_act = scanner.nextLine();
+                        System.out.print("Enter activity start date (YYYY-MM-DD HH:MM:SS): ");
+                        String startDateStr = scanner.nextLine();
+                        System.out.print("Enter activity end date (YYYY-MM-DD HH:MM:SS): ");
+                        String endDateStr = scanner.nextLine();
+
+                        Timestamp startDate = Timestamp.valueOf(startDateStr);
+                        Timestamp endDate = Timestamp.valueOf(endDateStr);
+                        Activity.createActivity(conn, title_act, description_act, startDate, endDate);
+                        break;
+                    case 14:
+                        System.out.print("Enter activity ID: ");
+                        int activityId = scanner.nextInt();
+                        Activity.readActivityById(conn, activityId);
+                        break;
+                    case 15:
+                        System.out.print("Enter activity ID to update: ");
+                        activityId = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        System.out.print("Enter new title: ");
+                        title = scanner.nextLine();
+                        System.out.print("Enter new description: ");
+                        description = scanner.nextLine();
+                        System.out.print("Enter new start date (YYYY-MM-DD HH:MM:SS): ");
+                        startDateStr = scanner.nextLine();
+                        System.out.print("Enter new end date (YYYY-MM-DD HH:MM:SS): ");
+                        endDateStr = scanner.nextLine();
+
+                        startDate = Timestamp.valueOf(startDateStr);
+                        endDate = Timestamp.valueOf(endDateStr);
+                        Activity.updateActivity(conn, activityId, title, description, startDate, endDate);
+                        break;
+                    case 16:
+                        System.out.print("Enter activity ID to delete:");
+                        activityId = scanner.nextInt();
+                        Activity.deleteActivity(conn, activityId);
+                        break;
+                    case 17:
+                        System.out.print("Exiting...");
                         Connect.closeConnection();
                         return;
+
                     default:
                         System.out.println("Invalid option. Please try again.");
                         break;
