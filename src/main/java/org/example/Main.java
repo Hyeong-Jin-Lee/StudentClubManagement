@@ -32,7 +32,11 @@ public class Main {
                 System.out.println("14. Read activity by ID");
                 System.out.println("15. Update activity");
                 System.out.println("16. Delete activity");
-                System.out.println("17. Exit");
+                System.out.println("17. Create recruitment notice");  // 추가된 메뉴
+                System.out.println("18. Read recruitment notice by ID");  // 추가된 메뉴
+                System.out.println("19. Update recruitment notice");  // 추가된 메뉴
+                System.out.println("20. Delete recruitment notice");
+                System.out.println("21. Exit");
                 System.out.print("Select an option: ");
                 int choice = scanner.nextInt();
                 scanner.nextLine(); // Consume newline character
@@ -172,6 +176,37 @@ public class Main {
                         Activity.deleteActivity(conn, activityId);
                         break;
                     case 17:
+                        // Create Recruitment Notice
+                        System.out.print("Enter recruitment notice title: ");
+                        String recruitTitle = scanner.nextLine();
+                        System.out.print("Enter recruitment notice description: ");
+                        String recruitDesc = scanner.nextLine();
+                        RecruitmentNotice.createRecruitmentNotice(conn, recruitTitle, recruitDesc);
+                        break;
+                    case 18:
+                        // Read Recruitment Notice by ID
+                        System.out.print("Enter recruitment notice ID: ");
+                        int recruitNoticeId = scanner.nextInt();
+                        RecruitmentNotice.readRecruitmentNoticeById(conn, recruitNoticeId);
+                        break;
+                    case 19:
+                        // Update Recruitment Notice
+                        System.out.print("Enter recruitment notice ID to update: ");
+                        recruitNoticeId = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        System.out.print("Enter new title: ");
+                        recruitTitle = scanner.nextLine();
+                        System.out.print("Enter new description: ");
+                        recruitDesc = scanner.nextLine();
+                        RecruitmentNotice.updateRecruitmentNotice(conn, recruitNoticeId, recruitTitle, recruitDesc);
+                        break;
+                    case 20:
+                        // Delete Recruitment Notice
+                        System.out.print("Enter recruitment notice ID to delete: ");
+                        recruitNoticeId = scanner.nextInt();
+                        RecruitmentNotice.deleteRecruitmentNotice(conn, recruitNoticeId);
+                        break;
+                    case 21:
                         System.out.print("Exiting...");
                         Connect.closeConnection();
                         return;
