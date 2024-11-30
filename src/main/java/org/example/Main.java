@@ -24,7 +24,11 @@ public class Main {
                 System.out.println("6. Read club by name");
                 System.out.println("7. Update club");
                 System.out.println("8. Delete club");
-                System.out.println("9. Exit");
+                System.out.println("9. Create notice");
+                System.out.println("10. Read notice by ID");
+                System.out.println("11. Update notice");
+                System.out.println("12. Delete notice");
+                System.out.println("13. Exit");
                 System.out.print("Select an option: ");
                 int choice = scanner.nextInt();
                 scanner.nextLine(); // Consume newline character
@@ -96,6 +100,33 @@ public class Main {
                         Club.deleteClub(conn, clubName);
                         break;
                     case 9:
+                        System.out.print("Enter notice title: ");
+                        String title = scanner.nextLine();
+                        System.out.print("Enter notice content: ");
+                        String content = scanner.nextLine();
+                        Notice.createNotice(conn, title, content);
+                        break;
+                    case 10:
+                        System.out.print("Enter notice ID: ");
+                        int noticeId = scanner.nextInt();
+                        Notice.readNoticeById(conn, noticeId);
+                        break;
+                    case 11:
+                        System.out.print("Enter notice ID to update: ");
+                        noticeId = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        System.out.print("Enter new title: ");
+                        title = scanner.nextLine();
+                        System.out.print("Enter new content: ");
+                        content = scanner.nextLine();
+                        Notice.updateNotice(conn, noticeId, title, content);
+                        break;
+                    case 12:
+                        System.out.println("Enter notice ID to delete:");
+                        noticeId = scanner.nextInt();
+                        Notice.deleteNotice(conn, noticeId);
+                        break;
+                    case 13:
                         System.out.println("Exiting...");
                         Connect.closeConnection();
                         return;
