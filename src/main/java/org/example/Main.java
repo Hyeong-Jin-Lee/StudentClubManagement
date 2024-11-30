@@ -30,7 +30,7 @@ public class Main {
                         connectToDatabase();
                         break;
                     case 2:
-                        addStudent(scanner);
+                        createStudent(scanner);
                         break;
                     case 3:
                         readStudentById(scanner);
@@ -39,6 +39,18 @@ public class Main {
                         updateStudent(scanner);
                     case 5:
                         deleteStudent(scanner);
+                        break;
+                    case 6:
+                        createClub(scanner);
+                        break;
+                    case 7:
+                        readClubByName(scanner);
+                        break;
+                    case 8:
+                        updateClub(scanner);
+                        break;
+                    case 9:
+                        deleteClub(scanner);
                         break;
                     case 99:
                         System.out.println("Exiting system...");
@@ -55,10 +67,14 @@ public class Main {
     private static void printMenu() {
         System.out.println("----------------------------");
         System.out.println("1. Connection");
-        System.out.println("2. Add Student");
+        System.out.println("2. Create Student");
         System.out.println("3. Read Student by ID");
         System.out.println("4. Update Student");
         System.out.println("5. Delete Student");
+        System.out.println("6  Create Club");
+        System.out.println("7. Read Club by Name");
+        System.out.println("8. Update Club");
+        System.out.println("9. Delete Club");
         System.out.println("99. quit");
         System.out.println("----------------------------");
     }
@@ -90,7 +106,7 @@ public class Main {
     }
 
     // 1. Add Student
-    private static void addStudent(Scanner scanner) {
+    private static void createStudent(Scanner scanner) {
         // Check if the Student table exists, if not, create it
         createStudentTableIfNotExists();
 
@@ -212,4 +228,135 @@ public class Main {
             System.out.println("Failed to delete student: " + e.getMessage());
         }
     }
+
+    // Add Club
+    private static void createClub(Scanner scanner) {
+        createClubTableIfNotExists();
+        System.out.print("Enter Club Name: ");
+        String clubName = scanner.nextLine();
+        System.out.print("Enter Club Description: ");
+        String description = scanner.nextLine();
+        System.out.print("Enter Faculty Advisor Name: ");
+        String facultyAdvisor = scanner.nextLine();
+        System.out.print("Enter Establishment Year: ");
+        int establishmentYear = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        String query = "INSERT INTO Club (ClubName, Description, FacultyAdvisor, EstablishmentYear) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, clubName);
+            stmt.setString(2, description);
+            stmt.setString(3, facultyAdvisor);
+            stmt.setInt(4, establishmentYear);
+            stmt.executeUpdate();
+            System.out.println("Club added successfully.");
+        } catch (SQLException e) {
+            System.out.println("Failed to add club: " + e.getMessage());
+        }
+    }
+
+    // Method to check if the Club table exists, and create it if not
+    private static void createClubTableIfNotExists() {
+        // Query to check if the Club table exists
+        String checkTableQuery = "SHOW TABLES LIKE 'Club'";
+
+        // Query to create the Club table if it does not exist
+        String createTableQuery = """
+    CREATE TABLE Club (
+        ClubName VARCHAR(255) PRIMARY KEY,
+        Description TEXT,
+        FacultyAdvisor VARCHAR(100),
+        EstablishmentYear INT
+    )
+    """;
+
+        try (Statement stmt = conn.createStatement()) {
+            // Check if the Club table exists
+            ResultSet rs = stmt.executeQuery(checkTableQuery);
+            if (!rs.next()) { // If the table does not exist
+                System.out.println("Club table does not exist. Creating table...");
+                stmt.executeUpdate(createTableQuery); // Create the table
+                System.out.println("Club table created successfully.");
+            } else {
+                System.out.println("Club table already exists.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to check or create Club table: " + e.getMessage());
+        }
+    }
+
+    // Read Club by Club Name
+    private static void readClubByName(Scanner scanner) {
+        System.out.print("Enter Club Name to search: ");
+        String clubName = scanner.nextLine();
+
+        String query = "SELECT * FROM Club WHERE ClubName = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, clubName);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("Club Name: " + rs.getString("ClubName"));
+                System.out.println("Description: " + rs.getString("Description"));
+                System.out.println("Faculty Advisor: " + rs.getString("FacultyAdvisor"));
+                System.out.println("Establishment Year: " + rs.getInt("EstablishmentYear"));
+            } else {
+                System.out.println("No club found with the name: " + clubName);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to read club: " + e.getMessage());
+        }
+    }
+
+    // Update Club information
+    private static void updateClub(Scanner scanner) {
+        System.out.print("Enter Club Name to update: ");
+        String clubName = scanner.nextLine();
+        System.out.print("Enter new Description: ");
+        String description = scanner.nextLine();
+        System.out.print("Enter new Faculty Advisor Name: ");
+        String facultyAdvisor = scanner.nextLine();
+        System.out.print("Enter new Establishment Year: ");
+        int establishmentYear = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        String query = "UPDATE Club SET Description = ?, FacultyAdvisor = ?, EstablishmentYear = ? WHERE ClubName = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, description);
+            stmt.setString(2, facultyAdvisor);
+            stmt.setInt(3, establishmentYear);
+            stmt.setString(4, clubName);
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Club updated successfully.");
+            } else {
+                System.out.println("No club found with the name: " + clubName);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to update club: " + e.getMessage());
+        }
+    }
+    // Delete Club by Club Name
+    private static void deleteClub(Scanner scanner) {
+        System.out.print("Enter Club Name to delete: ");
+        String clubName = scanner.nextLine();
+
+        String query = "DELETE FROM Club WHERE ClubName = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, clubName);
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Club with name " + clubName + " deleted successfully.");
+            } else {
+                System.out.println("No club found with the name: " + clubName);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to delete club: " + e.getMessage());
+        }
+    }
+
+
+
 }
