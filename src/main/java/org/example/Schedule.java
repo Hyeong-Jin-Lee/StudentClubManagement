@@ -5,7 +5,7 @@ import java.sql.*;
 public class Schedule {
 
     // Create the RecruitmentNotice table if it doesn't exist
-    public static void createRecruitmentNoticeTableIfNotExists(Connection conn) {
+    public static void createScheduleTableIfNotExists(Connection conn) {
         String checkTableQuery = "SHOW TABLES LIKE 'Schedule'";
         String createTableSQL = """
             CREATE TABLE Schedule (
@@ -27,16 +27,16 @@ public class Schedule {
             ResultSet rs = stmt.executeQuery(checkTableQuery);
             if(!rs.next()){
                 stmt.executeUpdate(createTableSQL);
-                System.out.println("RecruitmentNotice table created successfully.");
+                System.out.println("Schedule table created successfully.");
             }
         } catch (SQLException e) {
-            System.out.println("Failed to check or create RecruitmentNotice table: " + e.getMessage());
+            System.out.println("Failed to check or create Schedule table: " + e.getMessage());
         }
     }
 
     // Create a new recruitment notice
     public static void createSchedule(Connection conn, String title, String content, String startDate,String endDate, int creatorID, int clubID) {
-        String insertSQL = "INSERT INTO RecruitmentNotice (Title, Content, StartDate, EndDate, CreatorID, ClubID) VALUES (?, ?, ?, ?, ?, ?)";
+        String insertSQL = "INSERT INTO Schedule (Title, Content, StartDate, EndDate, CreatorID, ClubID) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
             pstmt.setString(1, title);
             pstmt.setString(2, content);
@@ -52,7 +52,7 @@ public class Schedule {
     }
 
     // Read a recruitment notice by its ID
-    public static void readRecruitmentNoticeById(Connection conn, int id) {
+    public static void readScheduleById(Connection conn, int id) {
         String selectSQL = "SELECT * FROM Schedule WHERE ScheduleID = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
             pstmt.setInt(1, id);
@@ -68,15 +68,15 @@ public class Schedule {
                 System.out.println("StartDate: " + startDate);
                 System.out.println("EndDate: " + endDate);
             } else {
-                System.out.println("No recruitment notice found with ID: " + id);
+                System.out.println("No Schedule found with ID: " + id);
             }
         } catch (SQLException e) {
-            System.out.println("Error reading recruitment notice: " + e.getMessage());
+            System.out.println("Error reading Schedule: " + e.getMessage());
         }
     }
 
-    // Update a recruitment notice
-    public static void updateRecruitmentNotice(Connection conn, int id, String title, String content) {
+    // Update a Schedule
+    public static void updateSchedule(Connection conn, int id, String title, String content) {
         String updateSQL = "UPDATE Schedule SET Title = ?, Content = ? WHERE ScheduleID = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(updateSQL)) {
             pstmt.setString(1, title);
@@ -84,28 +84,28 @@ public class Schedule {
             pstmt.setInt(3, id);
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Recruitment Notice updated successfully.");
+                System.out.println("Schedule updated successfully.");
             } else {
-                System.out.println("No recruitment notice found with ID: " + id);
+                System.out.println("No Schedule found with ID: " + id);
             }
         } catch (SQLException e) {
-            System.out.println("Error updating recruitment notice: " + e.getMessage());
+            System.out.println("Error updating Schedule: " + e.getMessage());
         }
     }
 
     // Delete a recruitment notice by its ID
-    public static void deleteRecruitmentNotice(Connection conn, int id) {
+    public static void deleteSchedule(Connection conn, int id) {
         String deleteSQL = "DELETE FROM Schedule WHERE ScheduleID = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(deleteSQL)) {
             pstmt.setInt(1, id);
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Recruitment Notice deleted successfully.");
+                System.out.println("Schedule deleted successfully.");
             } else {
-                System.out.println("No recruitment notice found with ID: " + id);
+                System.out.println("No Schedule found with ID: " + id);
             }
         } catch (SQLException e) {
-            System.out.println("Error deleting recruitment notice: " + e.getMessage());
+            System.out.println("Error deleting Schedule: " + e.getMessage());
         }
     }
 }
