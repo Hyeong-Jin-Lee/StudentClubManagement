@@ -32,8 +32,8 @@ public class Student_ClubReview {
     }
 
     // Create a new Student_ClubReview
-    public static void createStudent_ClubReview(Connection conn, String reviewDate, String content, int studentID, int clubID]) {
-        String insertSQL = "INSERT INTO Schedule (JoinDate, StudentID, ClubID, RoleID) VALUES (?, ?, ?, ?)";
+    public static void createStudent_ClubReview(Connection conn, String reviewDate, String content, int studentID, int clubID) {
+        String insertSQL = "INSERT INTO Schedule (ReviewDate, Content, StudentID, ClubID) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
             pstmt.setString(1, reviewDate);
             pstmt.setString(2, content);
@@ -54,10 +54,10 @@ public class Student_ClubReview {
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 String reviewDate = rs.getString("ReviewDate");
-                String content = rs.getString("Content");'
+                String content = rs.getString("Content");
                 int studentID = rs.getInt("StudentID");
                 int clubID = rs.getInt("ClubID");
-                System.out.println("Join ID: " + id);
+                System.out.println("Review ID: " + id);
                 System.out.println("StudentID: " + studentID);
                 System.out.println("ClubID: " + clubID);
                 System.out.println("Content: " + content);
@@ -71,10 +71,10 @@ public class Student_ClubReview {
     }
 
     // Update a Review
-    public static void updateJoin(Connection conn, int id, String joinDate) {
+    public static void updateJoin(Connection conn, int id, String content) {
         String updateSQL = "UPDATE Student_ClubReview SET Content = ?, WHERE Review = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(updateSQL)) {
-            pstmt.setString(1, joinDate);
+            pstmt.setString(1, content);
             pstmt.setInt(2, id);
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
