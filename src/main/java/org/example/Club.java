@@ -8,10 +8,13 @@ public class Club {
         String checkTableQuery = "SHOW TABLES LIKE 'Club'";
         String createTableQuery = """
             CREATE TABLE Club (
-                ClubName VARCHAR(255) PRIMARY KEY,
+                ClubId INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+                ClubName VARCHAR(255),
                 Description TEXT,
-                FacultyAdvisor VARCHAR(100),
-                EstablishmentYear INT
+                AdvisorID INT, 
+                FoundedYear INT,
+                FOREIGN KEY (AdvisorID)
+                REFERENCES Student(StudentID) ON UPDATE CASCADE ON DELETE RESTRICT
             )
         """;
 
@@ -26,13 +29,13 @@ public class Club {
         }
     }
 
-    public static void createClub(Connection conn, String clubName, String description, String facultyAdvisor, int establishmentYear) {
-        String query = "INSERT INTO Club (ClubName, Description, FacultyAdvisor, EstablishmentYear) VALUES (?, ?, ?, ?)";
+    public static void createClub(Connection conn, String clubName, String description, String advisorID, int foundedYear) {
+        String query = "INSERT INTO Club (ClubName, Description, AdvisorID, FoundedYear) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, clubName);
             stmt.setString(2, description);
-            stmt.setString(3, facultyAdvisor);
-            stmt.setInt(4, establishmentYear);
+            stmt.setString(3, advisorID);
+            stmt.setInt(4, foundedYear);
             stmt.executeUpdate();
             System.out.println("Club added successfully.");
         } catch (SQLException e) {
@@ -48,8 +51,8 @@ public class Club {
             if (rs.next()) {
                 System.out.println("Club Name: " + rs.getString("ClubName"));
                 System.out.println("Description: " + rs.getString("Description"));
-                System.out.println("Faculty Advisor: " + rs.getString("FacultyAdvisor"));
-                System.out.println("Establishment Year: " + rs.getInt("EstablishmentYear"));
+                System.out.println("Faculty Advisor: " + rs.getString("AdvisorID"));
+                System.out.println("Establishment Year: " + rs.getInt("FoundedYear"));
             } else {
                 System.out.println("No club found with the name: " + clubName);
             }
@@ -58,12 +61,12 @@ public class Club {
         }
     }
 
-    public static void updateClub(Connection conn, String clubName, String newDescription, String newFacultyAdvisor, int newEstablishmentYear) {
-        String query = "UPDATE Club SET Description = ?, FacultyAdvisor = ?, EstablishmentYear = ? WHERE ClubName = ?";
+    public static void updateClub(Connection conn, String clubName, String newDescription, String newAdvisorID, int newFoundedYear) {
+        String query = "UPDATE Club SET Description = ?, AdvisorID = ?, FoundedYear = ? WHERE ClubName = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, newDescription);
-            stmt.setString(2, newFacultyAdvisor);
-            stmt.setInt(3, newEstablishmentYear);
+            stmt.setString(2, newAdvisorID);
+            stmt.setInt(3, newFoundedYear);
             stmt.setString(4, clubName);
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
