@@ -4,20 +4,17 @@ import java.sql.*;
 
 public class Activity {
 
-
-
     // 활동 테이블 생성 (없으면 생성)
     public static void createActivityTableIfNotExists(Connection conn) {
-
-
         String checkTableQuery = "SHOW TABLES LIKE 'Activity'";
         String createTableQuery = """
             CREATE TABLE Activity (
-                ActivityID INT AUTO_INCREMENT PRIMARY KEY,
-                Title VARCHAR(255) NOT NULL,
-                Description TEXT NOT NULL,
-                StartDate DATETIME NOT NULL,
-                EndDate DATETIME NOT NULL
+                ActivityID INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+                ActivityName VARCHAR(255) NOT NULL,
+                Date TEXT NOT NULL,
+                ClubName VARCHAR(255),
+                FOREIGN KEY (ClubName)
+                REFERENCES Club(ClubID) ON UPDATE CASCADE ON DELETE RESTRICT    
             )
         """;
 
@@ -36,14 +33,13 @@ public class Activity {
     }
 
     // 활동 추가
-    public static void createActivity(Connection conn, String title, String description, Timestamp startDate, Timestamp endDate) {
-        createActivityTableIfNotExists(conn);
-        String query = "INSERT INTO Activity (Title, Description, StartDate, EndDate) VALUES (?, ?, ?, ?)";
+    public static void createActivity(Connection conn, String activityName, String date, int clubID) {
+
+        String query = "INSERT INTO Activity (activityName, Date, ClubID) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, title);
-            stmt.setString(2, description);
-            stmt.setTimestamp(3, startDate);
-            stmt.setTimestamp(4, endDate);
+            stmt.setString(1, activityName);
+            stmt.setString(2, date);
+            stmt.setInt(3, clubID);
             stmt.executeUpdate();
             System.out.println("Activity added successfully.");
         } catch (SQLException e) {
@@ -58,11 +54,9 @@ public class Activity {
             stmt.setInt(1, activityId);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                System.out.println("Activity ID: " + rs.getInt("ActivityID"));
-                System.out.println("Title: " + rs.getString("Title"));
-                System.out.println("Description: " + rs.getString("Description"));
-                System.out.println("Start Date: " + rs.getTimestamp("StartDate"));
-                System.out.println("End Date: " + rs.getTimestamp("EndDate"));
+                System.out.println("Activity Name: " + rs.getInt("ActivityName"));
+                System.out.println("Date: " + rs.getString("Date"));
+                System.out.println("ClubID: " + rs.getString("ClubID"));
             } else {
                 System.out.println("No activity found with ID: " + activityId);
             }
@@ -72,14 +66,13 @@ public class Activity {
     }
 
     // 활동 업데이트
-    public static void updateActivity(Connection conn, int activityId, String newTitle, String newDescription, Timestamp newStartDate, Timestamp newEndDate) {
-        String query = "UPDATE Activity SET Title = ?, Description = ?, StartDate = ?, EndDate = ? WHERE ActivityID = ?";
+    public static void updateActivity(Connection conn, int activityId, String activityName, String date, int clubID) {
+        String query = "UPDATE Activity SET ActivityName = ?, Date = ? WHERE ActivityID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, newTitle);
-            stmt.setString(2, newDescription);
-            stmt.setTimestamp(3, newStartDate);
-            stmt.setTimestamp(4, newEndDate);
-            stmt.setInt(5, activityId);
+            stmt.setString(1, activityName);
+            stmt.setString(2, date);
+            stmt.setInt(3, clubID);
+            stmt.setInt(4, activityId);
             int rowsUpdated = stmt.executeUpdate();
             if (rowsUpdated > 0) {
                 System.out.println("Activity updated successfully.");
