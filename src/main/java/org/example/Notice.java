@@ -9,10 +9,16 @@ public class Notice {
         String checkTableQuery = "SHOW TABLES LIKE 'Notice'";
         String createTableQuery = """
             CREATE TABLE Notice (
-                NoticeID INT AUTO_INCREMENT PRIMARY KEY,
+                NoticeID INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
                 Title VARCHAR(255) NOT NULL,
                 Content TEXT NOT NULL,
-                CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CreaterID VARCHAR(255) NOT NULL,
+                ClubID VARCHAR(255) NOT NULL,
+                FOREIGN KEY (ClubID)
+                REFERENCES Club(ClubID) ON UPDATE CASCADE ON DELETE RESTRICT,
+                FOREIGN KEY (CreaterID)
+                REFERENCES Student(StudentID) ON UPDATE CASCADE ON DELETE RESTRICT
             )
         """;
 
@@ -28,12 +34,14 @@ public class Notice {
     }
 
     // 공지사항 추가
-    public static void createNotice(Connection conn, String title, String content) {
-        createNoticeTableIfNotExists(conn);
-        String query = "INSERT INTO Notice (Title, Content) VALUES (?, ?)";
+    public static void createNotice(Connection conn, String title, String content, String creationDate, int creatorID, int clubID) {
+        String query = "INSERT INTO Notice (Title, Content, CreationDate, CreatorID, ClubID) VALUES (?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, title);
             stmt.setString(2, content);
+            stmt.setString(3, creationDate);
+            stmt.setInt(4, creatorID);
+            stmt.setInt(5, clubID);
             stmt.executeUpdate();
             System.out.println("Notice added successfully.");
         } catch (SQLException e) {
@@ -61,12 +69,15 @@ public class Notice {
     }
 
     // 공지사항 업데이트
-    public static void updateNotice(Connection conn, int noticeId, String newTitle, String newContent) {
+    public static void updateNotice(Connection conn, int noticeId, String newTitle, String newContent, String creationDate, int creatorID, int clubID) {
         String query = "UPDATE Notice SET Title = ?, Content = ? WHERE NoticeID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, newTitle);
             stmt.setString(2, newContent);
-            stmt.setInt(3, noticeId);
+            stmt.setString(3, creationDate);
+            stmt.setInt(4, creatorID);
+            stmt.setInt(5, clubID);
+            stmt.setInt(6, noticeId);
             int rowsUpdated = stmt.executeUpdate();
             if (rowsUpdated > 0) {
                 System.out.println("Notice updated successfully.");
