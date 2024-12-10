@@ -6,28 +6,42 @@ public class RecruitmentNotice {
 
     // Create the RecruitmentNotice table if it doesn't exist
     public static void createRecruitmentNoticeTableIfNotExists(Connection conn) {
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS RecruitmentNotice (" +
-                "recruitmentNoticeId INT AUTO_INCREMENT PRIMARY KEY, " +
-                "title VARCHAR(255), " +
-                "description TEXT, " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                ")";
+        String checkTableQuery = "SHOW TABLES LIKE 'RecruitmentNotice'";
+        String createTableSQL = """
+            CREATE TABLE RecruitmentNotice (
+                RecruitmentNoticeId INT AUTO_INCREMENT PRIMARY KEY,
+                Title VARCHAR(255),
+                Content TEXT,
+                CreatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CreatorID INT,
+                ClubID INT,
+                FOREIGN KEY (CreatorID)
+                REFERENCES Student(StudentID) ON UPDATE CASCADE ON DELETE RESTRICT,
+                FOREIGN KEY (ClubID)
+                REFERENCES Club(ClubID) ON UPDATE CASCADE ON DELETE RESTRICT
+      
+            )
+        """;
         try (Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate(createTableSQL);
-            System.out.println("RecruitmentNotice table is ready.");
+            ResultSet rs = stmt.executeQuery(checkTableQuery);
+            if(!rs.next()){
+                stmt.executeUpdate(createTableSQL);
+                System.out.println("RecruitmentNotice table created successfully.");
+            }
         } catch (SQLException e) {
-            System.out.println("Error creating RecruitmentNotice table: " + e.getMessage());
+            System.out.println("Failed to check or create RecruitmentNotice table: " + e.getMessage());
         }
     }
 
     // Create a new recruitment notice
-    public static void createRecruitmentNotice(Connection conn, String title, String description) {
-        createRecruitmentNoticeTableIfNotExists(conn);
-
-        String insertSQL = "INSERT INTO RecruitmentNotice (title, description) VALUES (?, ?)";
+    public static void createRecruitmentNotice(Connection conn, String title, String content, String createdDate, int creatorID, int clubID) {
+        String insertSQL = "INSERT INTO RecruitmentNotice (Title, Content, CreatedDate, CreatorID, ClubID) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
             pstmt.setString(1, title);
-            pstmt.setString(2, description);
+            pstmt.setString(2, content);
+            pstmt.setString(3, createdDate);
+            pstmt.setInt(4, creatorID);
+            pstmt.setInt(5, clubID);
             pstmt.executeUpdate();
             System.out.println("Recruitment Notice created successfully.");
         } catch (SQLException e) {
@@ -42,13 +56,13 @@ public class RecruitmentNotice {
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                String title = rs.getString("title");
-                String description = rs.getString("description");
-                Timestamp createdAt = rs.getTimestamp("created_at");
+                String title = rs.getString("Title");
+                String content = rs.getString("Content");
+                Timestamp createdDate = rs.getTimestamp("CreatedDate");
                 System.out.println("Recruitment Notice ID: " + id);
                 System.out.println("Title: " + title);
-                System.out.println("Description: " + description);
-                System.out.println("Created At: " + createdAt);
+                System.out.println("Content: " + content);
+                System.out.println("Created At: " + createdDate);
             } else {
                 System.out.println("No recruitment notice found with ID: " + id);
             }
@@ -58,11 +72,11 @@ public class RecruitmentNotice {
     }
 
     // Update a recruitment notice
-    public static void updateRecruitmentNotice(Connection conn, int id, String title, String description) {
-        String updateSQL = "UPDATE RecruitmentNotice SET title = ?, description = ? WHERE recruitmentNoticeId = ?";
+    public static void updateRecruitmentNotice(Connection conn, int id, String title, String content) {
+        String updateSQL = "UPDATE RecruitmentNotice SET Title = ?, Content = ? WHERE RecruitmentNoticeId = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(updateSQL)) {
             pstmt.setString(1, title);
-            pstmt.setString(2, description);
+            pstmt.setString(2, content);
             pstmt.setInt(3, id);
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
