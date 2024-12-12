@@ -1,6 +1,9 @@
-package org.example;
+package org.example.club;
+
+import org.example.student.Role;
 
 import java.sql.*;
+import java.util.Date;
 
 public class Notice {
 
@@ -13,11 +16,11 @@ public class Notice {
                 Title VARCHAR(255) NOT NULL,
                 Content TEXT NOT NULL,
                 CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                CreaterID VARCHAR(255) NOT NULL,
-                ClubID VARCHAR(255) NOT NULL,
+                CreatorID INT NOT NULL,
+                ClubID INT NOT NULL,
                 FOREIGN KEY (ClubID)
                 REFERENCES Club(ClubID) ON UPDATE CASCADE ON DELETE RESTRICT,
-                FOREIGN KEY (CreaterID)
+                FOREIGN KEY (CreatorID)
                 REFERENCES Student(StudentID) ON UPDATE CASCADE ON DELETE RESTRICT
             )
         """;
@@ -34,14 +37,13 @@ public class Notice {
     }
 
     // 공지사항 추가
-    public static void createNotice(Connection conn, String title, String content, String creationDate, int creatorID, int clubID) {
-        String query = "INSERT INTO Notice (Title, Content, CreationDate, CreatorID, ClubID) VALUES (?, ?)";
+    public static void createNotice(Connection conn, String title, String content, int creatorID, int clubID) {
+        String query = "INSERT INTO Notice (Title, Content, CreatorID, ClubID) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, title);
             stmt.setString(2, content);
-            stmt.setString(3, creationDate);
-            stmt.setInt(4, creatorID);
-            stmt.setInt(5, clubID);
+            stmt.setInt(3, creatorID);
+            stmt.setInt(4, clubID);
             stmt.executeUpdate();
             System.out.println("Notice added successfully.");
         } catch (SQLException e) {
@@ -49,19 +51,41 @@ public class Notice {
         }
     }
 
-    // 공지사항 읽기 (ID로)
-    public static void readNoticeById(Connection conn, int noticeId) {
+    // 동아리별 공지사항 목록 출력
+    public static void readNoticeByClubId(Connection conn, int clubID, int role) {
+        String query = "SELECT * FROM Notice N LEFT JOIN Student_Notice SN ON N.NoticeID = SN.NoticeID WHERE N.ClubID = ? " +
+                       "UNION SELECT * FROM Notice N RIGHT JOIN Student_Notice SN ON N.NoticeID = SN.NoticeID WHERE N.ClubID = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, clubID);
+            stmt.setInt(2, clubID);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                System.out.printf("%-15s%-30s%-5s\n","Notice ID","Title","Read");
+                do {
+                    System.out.printf("%-15s%-30s%-5s\n", Integer.toString(rs.getInt("NoticeID")+(role == Role.MEMBER.ordinal() ? 1 : 2))+".", rs.getString("Title"), "R");
+                } while(rs.next());
+            } else {
+                System.out.println("No notice found with ID: " + clubID);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to read notice: " + e.getMessage());
+        }
+    }
+
+    // 공지사항 상세 읽기
+    public static void readNoticeById(Connection conn, int noticeID) {
         String query = "SELECT * FROM Notice WHERE NoticeID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, noticeId);
+            stmt.setInt(1, noticeID);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                System.out.println("Notice ID: " + rs.getInt("NoticeID"));
                 System.out.println("Title: " + rs.getString("Title"));
                 System.out.println("Content: " + rs.getString("Content"));
                 System.out.println("Creation Date: " + rs.getTimestamp("CreationDate"));
             } else {
-                System.out.println("No notice found with ID: " + noticeId);
+                System.out.println("No notice found with ID: " + noticeID);
             }
         } catch (SQLException e) {
             System.out.println("Failed to read notice: " + e.getMessage());
@@ -69,18 +93,28 @@ public class Notice {
     }
 
     // 공지사항 업데이트
-    public static void updateNotice(Connection conn, int noticeId, String newTitle, String newContent, String creationDate, int creatorID, int clubID) {
-        String query = "UPDATE Notice SET Title = ?, Content = ? WHERE NoticeID = ?";
+    public static void updateNotice(Connection conn, int noticeId, String newTitle, String newContent) {
+        String query = "UPDATE Notice SET ";
+        int c = 0;
+        if(!newTitle.equals("")) {
+            query += "Title = ? ";
+            c = 1;
+        }
+        if(!newContent.equals("")) {
+            if(c == 1) query += ", ";
+            query += "Content = ?  ";
+        }
+        query += "WHERE NoticeID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, newTitle);
-            stmt.setString(2, newContent);
-            stmt.setString(3, creationDate);
-            stmt.setInt(4, creatorID);
-            stmt.setInt(5, clubID);
-            stmt.setInt(6, noticeId);
+            int i = 1;
+            if(!newTitle.equals("")) stmt.setString(i++, newTitle);
+            if(!newContent.equals("")) stmt.setString(i++, newContent);
+            stmt.setInt(i, noticeId);
+            if(i == 1) return;
             int rowsUpdated = stmt.executeUpdate();
             if (rowsUpdated > 0) {
                 System.out.println("Notice updated successfully.");
+                Student_Notice.updateStudentNotice(conn, noticeId);
             } else {
                 System.out.println("No notice found with ID: " + noticeId);
             }
@@ -91,6 +125,8 @@ public class Notice {
 
     // 공지사항 삭제
     public static void deleteNotice(Connection conn, int noticeId) {
+        Student_Notice.deleteStudentNotice(conn, noticeId);
+
         String query = "DELETE FROM Notice WHERE NoticeID = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, noticeId);
