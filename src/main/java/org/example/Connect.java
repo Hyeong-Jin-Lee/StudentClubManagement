@@ -5,9 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Connect {
-    private static String IP = "192.168.56.101";
-    private static String PORT = "4567";
-    private static String DB_NAME = "sw_club";
+    private static final String IP = "192.168.56.101";
+    private static final String PORT = "4567";
+    private static final String DB_NAME = "sw_club";
     private static final String URL = "jdbc:mysql://" + IP + ":" + PORT + "/" + DB_NAME + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String USER = "root";
     private static final String PASSWORD = "1234";
