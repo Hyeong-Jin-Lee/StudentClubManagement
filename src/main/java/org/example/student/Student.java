@@ -1,4 +1,6 @@
-package org.example;
+package org.example.student;
+
+import org.example.club.ClubEntity;
 
 import java.sql.*;
 
@@ -10,7 +12,8 @@ public class Student {
             CREATE TABLE Student (
                 StudentID INT PRIMARY KEY,
                 Name VARCHAR(100) NOT NULL,
-                Contact VARCHAR(50) NOT NULL
+                Contact VARCHAR(50) NOT NULL,
+                Password VARCHAR(50) NOT NULL
             )
         """;
 
@@ -25,12 +28,13 @@ public class Student {
         }
     }
 
-    public static void createStudent(Connection conn, int studentId, String name, String contact) {
-        String query = "INSERT INTO Student (StudentID, Name, Contact) VALUES (?, ?, ?)";
+    public static void createStudent(Connection conn, int studentId, String name, String contact, String password) {
+        String query = "INSERT INTO Student (StudentID, Name, Contact, Password) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, studentId);
             stmt.setString(2, name);
             stmt.setString(3, contact);
+            stmt.setString(4, password);
             stmt.executeUpdate();
             System.out.println("Student added successfully.");
         } catch (SQLException e) {
@@ -38,21 +42,41 @@ public class Student {
         }
     }
 
-    public static void readStudentById(Connection conn, int studentId) {
-        String query = "SELECT * FROM Student WHERE StudentID = ?";
+    public static StudentEntity findStudent(Connection conn, int studentId, String password) {
+        String query = "SELECT * FROM Student WHERE StudentID = ? AND Password LIKE ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, studentId);
+            stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                System.out.println("Student ID: " + rs.getInt("StudentID"));
-                System.out.println("Name: " + rs.getString("Name"));
-                System.out.println("Contact: " + rs.getString("Contact"));
+                ClubEntity club = Join.findClubIdByStudentID(conn, studentId);
+                StudentEntity student = new StudentEntity(rs.getInt("StudentID"), rs.getString("Name"), rs.getString("Contact"), club);
+                return student;
             } else {
                 System.out.println("No student found with ID: " + studentId);
             }
         } catch (SQLException e) {
             System.out.println("Failed to read student: " + e.getMessage());
         }
+        return null;
+    }
+
+    public static StudentEntity findStudent(Connection conn, StudentEntity student) {
+        String query = "SELECT * FROM Student WHERE StudentID = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, student.getStudentId());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                ClubEntity club = Join.findClubIdByStudentID(conn, student.getStudentId());
+                student = new StudentEntity(rs.getInt("StudentID"), rs.getString("Name"), rs.getString("Contact"), club);
+                return student;
+            } else {
+                System.out.println("No student found with ID: " + student.getStudentId());
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to read student: " + e.getMessage());
+        }
+        return null;
     }
 
     public static void updateStudent(Connection conn, int studentId, String newName, String newContact) {
